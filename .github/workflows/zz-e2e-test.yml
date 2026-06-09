@@ -1,0 +1,29 @@
+name: zz-e2e-test
+on:
+  push:
+    branches: [e2e-test]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: make a change
+        run: echo "e2e marker ${GITHUB_SHA}" > e2e-marker.txt
+      - name: create PR via mirrored action (SHA-pinned)
+        id: cpr
+        uses: 1token-tech/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
+        with:
+          token: ${{ secrets.E2E_PAT }}
+          base: e2e-test
+          branch: e2e-test-auto-pr
+          title: "e2e: verify mirrored create-pull-request"
+          commit-message: "e2e: marker"
+          body: "Automated e2e test of 1token-tech/create-pull-request@5f6978f"
+      - name: report outputs
+        run: |
+          echo "number=${{ steps.cpr.outputs.pull-request-number }}"
+          echo "url=${{ steps.cpr.outputs.pull-request-url }}"
+          echo "operation=${{ steps.cpr.outputs.pull-request-operation }}"
